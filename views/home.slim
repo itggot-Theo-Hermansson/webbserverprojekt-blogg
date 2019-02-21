@@ -1,0 +1,9 @@
+h1 Blogg
+a href="/login" Log In
+br
+a href="/register" Register
+
+- session[:inlägg].each do |e|
+    h1 = e[3]
+    p = e[2]
+    p = e[4]
