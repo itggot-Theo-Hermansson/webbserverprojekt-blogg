@@ -7,9 +7,9 @@ require 'bcrypt'
 enable :sessions
 
 get('/') do 
-    db = SQLite3::Database.new("db/db_login.db")      
+    db = SQLite3::Database.new("db/db_login.db")
     session[:inlägg] = db.execute("SELECT * FROM blogg")
-    slim(:home)  
+    slim(:home)
 end
 
 get('/profil') do
