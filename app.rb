@@ -6,14 +6,25 @@ require 'bcrypt'
 
 enable :sessions
 
-get('/') do 
-    db = SQLite3::Database.new("db/db_login.db")
-    session[:inlägg] = db.execute("SELECT * FROM blogg")
+get('/') do
+    if session[:username] != nil
+        redirect('/logged_in')
+    end 
     slim(:home)
 end
 
+get('/logged_in') do
+    db = SQLite3::Database.new("db/db_login.db")
+    session[:inlägg] = db.execute("SELECT * FROM blogg")
+    if session[:username] == nil
+        redirect('/')
+    else
+        slim(:logged_in)
+    end
+end
+
 get('/profil') do
-    if session[:user_id] == nil
+    if session[:username] == nil
         redirect('/')
     else
         slim(:profil)
@@ -29,21 +40,20 @@ end
 
 get('/login') do
     if session[:user_id] != nil
-        redirect('/')
+        redirect('/logged_in')
     end
     slim(:login)
 end
 
 post('/login') do
     db = SQLite3::Database.new("db/db_login.db")
+    db.results_as_hash = true
 
-    password = params["Password"]
-    hashed_password = BCrypt::Password.create("#{params["Password"]}")
+    result = db.execute("SELECT Password, Id FROM users WHERE Username = '#{params["Username"]}'")
     
-    list = db.execute("SELECT Password FROM users WHERE Username = '#{params["Username"]}'")
-
-    if BCrypt::Password.new(hashed_password) == params["Password"]
-        session[:user_id] = params["Username"]
+    if BCrypt::Password.new(result[0]["Password"]) == params["Password"]
+        session[:username] = params["Username"]
+        session[:user_id] = result[0]["Id"]
         redirect('/profil')
     else
         redirect('/failed')
@@ -53,14 +63,15 @@ end
 
 get('/register') do
     if session[:user_id] != nil
-        redirect('/')
+        redirect('/logged_in')
     end
     slim(:register)
 end
 
 post('/register') do
-    db = SQLite3::Database.new("db/db_login.db")    
-    hashed_password = BCrypt::Password.create("#{params["Password"]}")
+    db = SQLite3::Database.new("db/db_login.db")   
+    new_password = params["Password"] 
+    hashed_password = BCrypt::Password.create(new_password)
 
     db.execute("INSERT INTO users (Username, Password) VALUES (?, ?)", params["Username"], hashed_password)
     redirect('/login')
@@ -70,3 +81,20 @@ get('/failed') do
     slim(:failed)
 end
 
+get('/edit_profile/:id') do
+    slim(:edit_profile)
+end
+
+post('/edit_profile') do
+    if session[:username] == nil
+        redirect('/')
+    else
+        slim(:edit_profile)
+    end
+
+    db = SQLite3::Database.new("db/db_login.db")
+    db.execute(%Q(UPDATE users SET Username = '#{params['Rubrik']}' WHERE Id = #{session[:user_id]}))
+
+    session.destroy
+    redirect back 
+end

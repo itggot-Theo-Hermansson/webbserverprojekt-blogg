@@ -1,6 +1,8 @@
 p Profile Page
-p Welcome Back!
+p Welcome Back #{session[:username]}!
+a href="/edit_profile/#{session[:user_id]}" Edit Profile
 
+p Post Something!
 form action="/makepost" method="POST"
     input type="text" name="Rubrik" placeholder="Enter Header"
     input type="text" name="Text" placeholder="Enter Text"
