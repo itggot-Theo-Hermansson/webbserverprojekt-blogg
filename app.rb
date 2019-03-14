@@ -33,7 +33,7 @@ end
 
 post('/makepost') do
     db = SQLite3::Database.new("db/db_login.db")
-    db.execute("INSERT INTO blogg (Username, Text, Rubrik, Time) VALUES (?, ?, ?, ?)", session[:username], params["Text"], params["Rubrik"], Time.now.to_s[0..9])
+    db.execute("INSERT INTO blogg (Username, Rubrik, Text, Time) VALUES (?, ?, ?, ?)", session[:username], params["Rubrik"], params["Text"], Time.now.to_s[0..9])
 
     redirect('/profil')
 end
@@ -97,4 +97,26 @@ post('/edit_profile') do
 
     session.destroy
     redirect back 
+end
+
+get('/edit_post/:id') do
+    if session[:username] == nil
+        redirect('/')
+    else
+        slim(:edit_post)
+    end
+end
+
+post('/edit_post') do
+    db = SQLite3::Database.new("db/db_login.db")
+    db.execute(%Q(UPDATE blogg SET Rubrik = '#{params['Header']}' WHERE Id = #{session[:user_id]}))
+
+    redirect back
+end
+
+post('/edit_post/:id') do
+    db = SQLite3::Database.new("db/db_login.db")
+    db.execute("DELETE FROM blogg WHERE Id = #{session[:user_id]}")
+
+    redirect back
 end

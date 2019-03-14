@@ -1,5 +1,6 @@
 a href="/profil" Profil
-
+br
+a href="/edit_post/#{session[:user_id]}" Edit Post
 - session[:inlägg].reverse_each do |e|
     h1 = e[3]
     p = e[2]
